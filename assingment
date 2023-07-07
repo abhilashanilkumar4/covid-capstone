@@ -1,0 +1,116 @@
+import pandas as pd
+
+url = "https://raw.githubusercontent.com/SR1608/Datasets/main/coviddata.csv"
+df = pd.read_csv(url)
+
+# Number of rows and columns
+rows, columns = df.shape
+print("Number of rows:", rows)
+print("Number of columns:", columns)
+
+# Data types of columns
+data_types = df.dtypes
+print("Data types of columns:")
+print(data_types)
+
+# Info
+print("Info of the dataframe:")
+print(df.info())
+
+# Describe
+print("Description of the dataframe:")
+print(df.describe())
+
+#1.a.
+unique_locations = df['location'].nunique()
+print("Count of unique values in 'location' column:", unique_locations)
+#b.
+continent_frequency = df['continent'].value_counts()
+continent_with_max_frequency = continent_frequency.idxmax()
+print("Continent with maximum frequency:", continent_with_max_frequency)
+#c.
+max_total_cases = df['total_cases'].max()
+mean_total_cases = df['total_cases'].mean()
+print("Maximum value in 'total_cases':", max_total_cases)
+print("Mean value in 'total_cases':", mean_total_cases)
+#d.
+quartiles = df['total_deaths'].quantile([0.25, 0.50, 0.75])
+print("25% quartile value in 'total_deaths':", quartiles[0.25])
+print("50% quartile value in 'total_deaths':", quartiles[0.50])
+print("75% quartile value in 'total_deaths':", quartiles[0.75])
+#e.
+continent_with_max_hdi = df.loc[df['human_development_index'].idxmax(), 'continent']
+print("Continent with maximum 'human_development_index':", continent_with_max_hdi)
+#f.
+continent_with_min_gdp = df.loc[df['gdp_per_capita'].idxmin(), 'continent']
+print("Continent with minimum 'gdp_per_capita':", continent_with_min_gdp)
+
+#Filter
+filtered_df = df[['continent', 'location', 'date', 'total_cases', 'total_deaths', 'gdp_per_capita', 'human_development_index']]
+df = filtered_df
+df = df.drop_duplicates()
+
+# Checking the number of remaining rows
+print("Number of rows after removing duplicates:", len(df))
+
+#Finding missing values in all columns:
+missing_values = df.isnull().sum()
+print("Missing values in each column:")
+print(missing_values)
+
+#Removing observations where the 'continent' column value is missing:
+df = df.dropna(subset=['continent'])
+# Checking the number of remaining rows
+print("Number of rows after removing missing 'continent' values:", len(df))
+
+#. Filling all missing values with 0
+df = df.fillna(0)
+
+# Verifying if any missing values remain
+missing_values = df.isnull().sum()
+print("Missing values after filling with 0:")
+print(missing_values)
+
+#Date time format:
+#a. Converting the 'date' column to datetime format
+df['date'] = pd.to_datetime(df['date'])
+# Verifying the data type conversion
+print("Data type of 'date' column after conversion:", df['date'].dtype)
+
+#Creating a new column 'month' by extracting month data from the 'date' column
+df['month'] = df['date'].dt.month
+# Verifying the new column
+print(df['month'])
+
+#Data Aggregation:
+#a. Finding the max value in all columns using groupby function on the 'continent' column
+df_groupby = df.groupby('continent').max().reset_index()
+print(df_groupby)
+
+#Feature Engineering:
+#a. Creating a new feature 'total_deaths_to_total_cases' by the ratio of 'total_deaths' column to 'total_cases'
+df_groupby['total_deaths_to_total_cases'] = df_groupby['total_deaths'] / df_groupby['total_cases']
+print(df_groupby)
+
+#Data Visualization:
+#a. Performing univariate analysis on the 'gdp_per_capita' column by plotting a histogram using seaborn distplot:
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+sns.displot(df['gdp_per_capita'])
+plt.show()
+
+#. Plotting a scatter plot of 'total_cases' and 'gdp_per_capita'
+sns.scatterplot(data=df, x='total_cases', y='gdp_per_capita')
+plt.show()
+
+#Plotting a pair plot on the df_groupby dataset
+sns.pairplot(df_groupby)
+plt.show()
+
+#Plotting a bar plot of the 'continent' column with 'total_cases'
+sns.catplot(data=df_groupby, x='continent', y='total_cases', kind='bar')
+plt.show()
+
+#Saving the df_groupby dataframe to the local drive using pandas.to_csv function:
+df_groupby.to_csv('df_groupby.csv', index=False)
